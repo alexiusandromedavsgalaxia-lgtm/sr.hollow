@@ -182,6 +182,57 @@ function TouchControls({move,look}){
   </div>
 }
 
+function CameraController({running,touchLook,sensitivity=1}){
+  const {camera,gl}=useThree()
+  const yaw=useRef(0)
+  const pitch=useRef(0)
+  const dragging=useRef(false)
+  const last=useRef({x:0,y:0})
+
+  useEffect(()=>{
+    yaw.current=camera.rotation.y
+    pitch.current=camera.rotation.x
+    const down=e=>{
+      if(!running)return
+      dragging.current=true
+      last.current={x:e.clientX,y:e.clientY}
+    }
+    const move=e=>{
+      if(!running||!dragging.current)return
+      const dx=e.clientX-last.current.x
+      const dy=e.clientY-last.current.y
+      last.current={x:e.clientX,y:e.clientY}
+      yaw.current-=dx*.0022*sensitivity
+      pitch.current=clamp(pitch.current-dy*.0022*sensitivity,-1.42,1.42)
+    }
+    const up=()=>{dragging.current=false}
+    const el=gl.domElement
+    el.addEventListener('pointerdown',down)
+    window.addEventListener('pointermove',move)
+    window.addEventListener('pointerup',up)
+    return()=>{
+      el.removeEventListener('pointerdown',down)
+      window.removeEventListener('pointermove',move)
+      window.removeEventListener('pointerup',up)
+    }
+  },[camera,gl,running,sensitivity])
+
+  useFrame(()=>{
+    if(!running)return
+    const touch=touchLook.current
+    if(touch){
+      yaw.current-=touch.dx*.006*sensitivity
+      pitch.current=clamp(pitch.current-touch.dy*.006*sensitivity,-1.42,1.42)
+      touchLook.current=null
+    }
+    camera.rotation.order='YXZ'
+    camera.rotation.y=yaw.current
+    camera.rotation.x=pitch.current
+    camera.rotation.z=0
+  })
+  return null
+}
+
 function World({mode,player,onLose,onWin,cameraSensitivity=1,difficulty='normal'}){
   const running=mode==='play'||mode==='practice'
   const cameraRef=useRef()
