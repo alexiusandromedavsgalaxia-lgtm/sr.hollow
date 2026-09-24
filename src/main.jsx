@@ -124,7 +124,7 @@ function PuzzleProps({state,onAction}){
 }
 
 function World({mode,player,onLose,onWin,cameraSensitivity,difficulty}){
-  const running=mode==='play'
+  const running=mode==='play'||mode==='practice'
   const cameraRef=useRef(),touchLook=useRef(null),grannyPos=useRef(new THREE.Vector3(-5.5,0,3.5)),noiseRef=useRef(null)
   const [inventory,setInventory]=useState(null),[message,setMessage]=useState(''),[day,setDay]=useState(1),[hidden,setHidden]=useState(false),[blur,setBlur]=useState(0)
   const [used,setUsed]=useState({}),[items,setItems]=useState({}),[props,setProps]=useState({well:false,melon:false,playhouse:false,safe:false,sewer:false,lever:false,car:false})
@@ -164,7 +164,7 @@ function World({mode,player,onLose,onWin,cameraSensitivity,difficulty}){
       <ambientLight intensity={.32}/><directionalLight castShadow position={[-5,10,4]} intensity={1.15} shadow-mapSize={[1024,1024]}/><pointLight position={[0,2.3,4.5]} intensity={4.5} distance={9} color="#d1a36c"/>
       <House/><PuzzleProps state={{props}}/>
       {Object.entries(items).map(([type,o])=>o?.available?<ItemMesh key={type} type={type} position={o.position}/>:null)}
-      <Granny player={player} active={!hidden} difficulty={difficulty} positionRef={grannyPos} noiseRef={noiseRef}/>
+      <Granny player={player} active={mode==='play'&&!hidden} difficulty={difficulty} positionRef={grannyPos} noiseRef={noiseRef}/>
       <Player running={running&&!hidden} onMove={p=>player.current.copy(p)} onNoise={()=>{noiseRef.current={x:player.current.x,z:player.current.z,t:performance.now()+6500}}}/>
       <CameraController running={running} touchLook={touchLook} sensitivity={cameraSensitivity}/>
     </Canvas>
