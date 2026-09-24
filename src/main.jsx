@@ -247,7 +247,23 @@ function Menu({onPlay,onPractice,onSettings}){
   </div>
 }
 
-function Settings({sensitivity,setSensitivity,onBack}){\n  return <div className="pregame">\n    <div className="preBox">\n      <div className="preKicker">SETTINGS</div>\n      <h2>GAME SETTINGS</h2>\n      <p>Adjust the camera before entering the house. The setting is saved for this session.</p>\n      <div className="controls"><span>CAMERA {Math.round(sensitivity*100)}%</span></div>\n      <input aria-label="Camera sensitivity" type="range" min="0.5" max="1.8" step="0.1" value={sensitivity} onChange={e=>setSensitivity(Number(e.target.value))} style={{width:'100%',accentColor:'#ded3c1'}}/>\n      <div style={{display:'flex',gap:8,marginTop:18}}><button onClick={onBack}>BACK</button><button className="ghost" onClick={()=>setSensitivity(1)}>RESET</button></div>\n    </div>\n  </div>\n}\n\nfunction PreGame({onStart,practice}){
+function Settings({sensitivity,setSensitivity,onBack}){
+  return <div className="pregame">
+    <div className="preBox">
+      <div className="preKicker">SETTINGS</div>
+      <h2>GAME SETTINGS</h2>
+      <p>Adjust the camera before entering the house. The setting is saved for this session.</p>
+      <div className="controls"><span>CAMERA {Math.round(sensitivity*100)}%</span></div>
+      <input aria-label="Camera sensitivity" type="range" min="0.5" max="1.8" step="0.1" value={sensitivity} onChange={e=>setSensitivity(Number(e.target.value))} style={{width:'100%',accentColor:'#ded3c1'}}/>
+      <div style={{display:'flex',gap:8,marginTop:18}}>
+        <button onClick={onBack}>BACK</button>
+        <button className="ghost" onClick={()=>setSensitivity(1)}>RESET</button>
+      </div>
+    </div>
+  </div>
+}
+
+function PreGame({onStart,practice}){
   return <div className="pregame">
     <div className="preBox">
       <div className="preKicker">{practice?'PRACTICE':'NIGHT 1'}</div>
@@ -263,15 +279,38 @@ function App(){
   const [screen,setScreen]=useState('menu')
   const [practice,setPractice]=useState(false)
   const [key,setKey]=useState(0)
+  const [cameraSensitivity,setCameraSensitivity]=useState(1)
   const player=useRef(new THREE.Vector3(...START))
-  const start=(p)=>{practice.current=p;setPractice(p);setScreen('pregame')}
-  const play=()=>{player.current.set(...START);setKey(k=>k+1);setScreen('play')}
+
+  const start=(p)=>{
+    setPractice(p)
+    setScreen('pregame')
+  }
+
+  const play=()=>{
+    player.current.set(...START)
+    setKey(k=>k+1)
+    setScreen('play')
+  }
+
+  const backToMenu=()=>setScreen('menu')
+
   return <div className="app">
-    {screen==='menu'&&<Menu onPlay={()=>start(false)} onPractice={()=>start(true)}/>}
+    {screen==='menu'&&<Menu onPlay={()=>start(false)} onPractice={()=>start(true)} onSettings={()=>setScreen('settings')}/>}
+    {screen==='settings'&&<Settings sensitivity={cameraSensitivity} setSensitivity={setCameraSensitivity} onBack={backToMenu}/>}
     {screen==='pregame'&&<PreGame practice={practice} onStart={play}/>}
-    {(screen==='play'||screen==='lose'||screen==='win')&&<World key={key} mode={screen==='play'?(practice?'practice':'play'):screen} player={player} onLose={()=>setScreen('lose')} onWin={()=>setScreen('win')}/>}
-    {screen==='lose'&&<div className="result"><div><small>GAME OVER</small><h2>GRANNY FOUND YOU</h2><button onClick={play}>TRY AGAIN</button><button className="ghost" onClick={()=>setScreen('menu')}>MAIN MENU</button></div></div>}
-    {screen==='win'&&<div className="result success"><div><small>ESCAPED</small><h2>YOU GOT OUT</h2><button onClick={()=>setScreen('menu')}>MAIN MENU</button></div></div>}
+    {(screen==='play'||screen==='lose'||screen==='win')&&
+      <World
+        key={key}
+        mode={screen==='play'?'play':screen}
+        player={player}
+        cameraSensitivity={cameraSensitivity}
+        onLose={()=>setScreen('lose')}
+        onWin={()=>setScreen('win')}
+      />
+    }
+    {screen==='lose'&&<div className="result"><div><small>GAME OVER</small><h2>GRANNY FOUND YOU</h2><button onClick={play}>TRY AGAIN</button><button className="ghost" onClick={backToMenu}>MAIN MENU</button></div></div>}
+    {screen==='win'&&<div className="result success"><div><small>ESCAPED</small><h2>YOU GOT OUT</h2><button onClick={backToMenu}>MAIN MENU</button></div></div>}
   </div>
 }
 
