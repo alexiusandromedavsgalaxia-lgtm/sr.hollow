@@ -57,7 +57,7 @@ function House(){
   </group>
 }
 
-function Player({onMove,onLook}){
+function Player({onMove}){
   const ref=useRef(),keys=useRef({}),{camera}=useThree()
   useEffect(()=>{
     const down=e=>{keys.current[e.code]=true}
@@ -76,6 +76,22 @@ function Player({onMove,onLook}){
       const next=camera.position.clone().addScaledVector(dir,speed)
       next.x=clamp(next.x,-6.7,6.7);next.z=clamp(next.z,-6.7,6.7)
       camera.position.copy(next);onMove(next)
+    }
+  })
+  return null
+}
+
+function TouchCamera({cameraRef,input}){
+  useFrame((_,dt)=>{
+    const camera=cameraRef.current
+    if(!camera)return
+    const {x,y}=input.current
+    if(x||y){
+      const speed=2.9*dt
+      const forward=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);forward.y=0;forward.normalize()
+      const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);right.y=0;right.normalize()
+      const next=camera.position.clone().addScaledVector(right,x*speed).addScaledVector(forward,-y*speed)
+      next.x=clamp(next.x,-6.7,6.7);next.z=clamp(next.z,-6.7,6.7);camera.position.copy(next);input.current={x:0,y:0}
     }
   })
   return null
@@ -106,13 +122,15 @@ function Granny({player,active}){
 function Game(){
   const [started,setStarted]=useState(false),[lost,setLost]=useState(false),[won,setWon]=useState(false)
   const player=useRef(new THREE.Vector3(0,1.65,5.5))
+  const cameraRef=useRef(null)
+  const touchMove=useRef({x:0,y:0})
   const [tick,setTick]=useState(0)
   useEffect(()=>{const id=setInterval(()=>setTick(t=>t+1),120);return()=>clearInterval(id)},[])
   useEffect(()=>{if(lost||won)return;const d=Math.hypot(player.current.x+4,player.current.z-4);if(d<1.05)setLost(true);if(player.current.z>6.8)setWon(true)},[tick,lost,won])
   const reset=()=>{player.current.set(0,1.65,5.5);setLost(false);setWon(false);setStarted(true)}
   return <div className="game">
     <Canvas shadows dpr={[1,1.7]} gl={{antialias:true}}>
-      <PerspectiveCamera makeDefault position={[0,1.65,5.5]} fov={72}/>
+      <PerspectiveCamera ref={cameraRef} makeDefault position={[0,1.65,5.5]} fov={72}/>
       <color attach="background" args={['#080706']}/>
       <ambientLight intensity={.35}/>
       <directionalLight castShadow position={[-4,8,3]} intensity={1.5} shadow-mapSize={[2048,2048]}/>
@@ -121,14 +139,16 @@ function Game(){
       <House/>
       <Granny player={player} active={started&&!lost&&!won}/>
       <Player onMove={p=>player.current.copy(p)}/>
+      <TouchCamera cameraRef={cameraRef} input={touchMove}/>
       <PointerLockControls onLock={()=>setStarted(true)}/>
       <Environment preset="warehouse"/>
     </Canvas>
     <div className="hud">
       <div className="brand">GRANNY <span>1.0 HOUSE</span></div>
       <div className="objective">FIND A WAY OUT</div>
-      <div className="hint">WASD · mouse · click to lock</div>
+      <div className="hint">WASD · ratón · táctil: joystick + deslizar</div>
     </div>
+    <TouchControls onMove={(x,y)=>{touchMove.current={x,y};setStarted(true)}} onLook={(dx,dy)=>{if(cameraRef.current){cameraRef.current.rotation.y-=dx*.004;cameraRef.current.rotation.x=clamp(cameraRef.current.rotation.x-dy*.003,-1.35,1.35)}}}/>
     {!started&&!lost&&!won&&<div className="overlay"><div className="panel"><div className="eyebrow">SR HOLLOW PRESENTS</div><h1>GRANNY</h1><p>Una recreación 3D jugable inspirada en la casa de la primera versión. Geometría original, iluminación dinámica y persecución en tiempo real.</p><button onClick={()=>setStarted(true)}>ENTRAR EN LA CASA</button></div></div>}
     {lost&&<div className="overlay"><div className="panel danger"><div className="eyebrow">CAUGHT</div><h1>TE ENCONTRÓ</h1><p>La casa sigue ahí. Tú decides si vuelves a entrar.</p><button onClick={reset}>REINTENTAR</button></div></div>}
     {won&&<div className="overlay"><div className="panel success"><div className="eyebrow">ESCAPED</div><h1>HAS SALIDO</h1><p>La puerta está abierta. Pero la noche no ha terminado.</p><button onClick={reset}>VOLVER A JUGAR</button></div></div>}
