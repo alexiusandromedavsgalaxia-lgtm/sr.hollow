@@ -200,7 +200,7 @@ function TouchControls({move,look}){
 }
 
 function World({mode,player,onLose,onWin,cameraSensitivity=1}){
-  const running=mode==='play'
+  const running=mode==='play'||mode==='practice'
   const cameraRef=useRef()
   const touchLook=useRef(null)
   const [tick,setTick]=useState(0)
@@ -220,12 +220,12 @@ function World({mode,player,onLose,onWin,cameraSensitivity=1}){
       <directionalLight castShadow position={[-5,9,4]} intensity={1.1} shadow-mapSize={[2048,2048]}/>
       <pointLight position={[0,2,-1]} intensity={4.5} distance={8} color="#c79e6c"/>
       <House/>
-      <Granny player={player} active={running}/>
+      <Granny player={player} active={mode==='play'}/>
       <Player running={running} onMove={p=>player.current.copy(p)}/>
       <CameraController running={running} touchLook={touchLook} sensitivity={cameraSensitivity}/>
       <Environment preset="warehouse"/>
     </Canvas>
-    {running&&<div className="gameHud"><span>GRANNY</span><span>NIGHT 1</span><small>WASD / tocar · arrastra para mirar</small></div>}
+    {running&&<div className="gameHud"><span>GRANNY</span><span>{mode==='practice'?'PRACTICE':'NIGHT 1'}</span><small>WASD / tocar · arrastra para mirar</small></div>}
     {running&&<TouchControls move={(x,y)=>{const c=cameraRef.current;if(!c)return;const forward=new THREE.Vector3(0,0,-1).applyQuaternion(c.quaternion);forward.y=0;forward.normalize();const right=new THREE.Vector3(1,0,0).applyQuaternion(c.quaternion);right.y=0;right.normalize();const next=c.position.clone().addScaledVector(right,x*.045).addScaledVector(forward,-y*.045);next.x=clamp(next.x,-6.65,6.65);next.z=clamp(next.z,-6.65,6.65);if(!Collision(next,c.position))c.position.copy(next);player.current.copy(c.position)}} look={(dx,dy)=>{touchLook.current={dx,dy}}}/>}
   </div>
 }
@@ -302,7 +302,7 @@ function App(){
     {(screen==='play'||screen==='lose'||screen==='win')&&
       <World
         key={key}
-        mode={screen==='play'?'play':screen}
+        mode={screen==='play'?(practice?'practice':'play'):screen}
         player={player}
         cameraSensitivity={cameraSensitivity}
         onLose={()=>setScreen('lose')}
