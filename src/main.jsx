@@ -163,13 +163,13 @@ function CameraController({running,touchLook,sensitivity=1}){
   })
   return null
 }
-function Granny({player,active}){
+function Granny({player,active,difficulty='normal'}){
   const ref=useRef()
   useFrame((_,dt)=>{
     if(!active||!ref.current)return
     const p=ref.current.position,dx=player.current.x-p.x,dz=player.current.z-p.z,d=Math.hypot(dx,dz)
     if(d<10&&d>.9){
-      const step=1.02*dt
+      const step=({easy:0.72,normal:1.02,hard:1.32,extreme:1.65}[difficulty]||1.02)*dt
       const nextX=p.x+dx/d*step,nextZ=p.z+dz/d*step
       if(!Collision({x:nextX,z:nextZ},p)){p.x=nextX;p.z=nextZ}
       ref.current.rotation.y=Math.atan2(dx,dz)
@@ -199,7 +199,7 @@ function TouchControls({move,look}){
   </div>
 }
 
-function World({mode,player,onLose,onWin,cameraSensitivity=1}){
+function World({mode,player,onLose,onWin,cameraSensitivity=1,difficulty='normal'}){
   const running=mode==='play'||mode==='practice'
   const cameraRef=useRef()
   const touchLook=useRef(null)
@@ -220,7 +220,7 @@ function World({mode,player,onLose,onWin,cameraSensitivity=1}){
       <directionalLight castShadow position={[-5,9,4]} intensity={1.1} shadow-mapSize={[2048,2048]}/>
       <pointLight position={[0,2,-1]} intensity={4.5} distance={8} color="#c79e6c"/>
       <House/>
-      <Granny player={player} active={mode==='play'}/>
+      <Granny player={player} active={mode==='play'} difficulty={difficulty}/>
       <Player running={running} onMove={p=>player.current.copy(p)}/>
       <CameraController running={running} touchLook={touchLook} sensitivity={cameraSensitivity}/>
       <Environment preset="warehouse"/>
@@ -230,7 +230,7 @@ function World({mode,player,onLose,onWin,cameraSensitivity=1}){
   </div>
 }
 
-function Menu({onPlay,onPractice,onSettings}){
+function Menu({onPlay,onPractice,onSettings,onDifficulty,difficulty}){
   return <div className="menu">
     <div className="menuScene"><div className="vignette"/></div>
     <div className="menuCard">
@@ -245,6 +245,17 @@ function Menu({onPlay,onPractice,onSettings}){
       <p>Five nights. One house. Find the way out.</p>
     </div>
   </div>
+}
+
+function Difficulty({difficulty,setDifficulty,onBack}){
+  const choices=[['easy','EASY','Granny moves slower.'],['normal','NORMAL','Classic pace.'],['hard','HARD','Granny moves faster.'],['extreme','EXTREME','Fastest chase.']]
+  return <div className="pregame"><div className="preBox">
+    <div className="preKicker">DIFFICULTY</div>
+    <h2>CHOOSE YOUR NIGHT</h2>
+    <p>The difficulty changes Granny's chase speed. Practice mode ignores the chase.</p>
+    <div className="difficultyList">{choices.map(([id,name,desc])=><button key={id} className={difficulty===id?'selected':''} onClick={()=>setDifficulty(id)}><strong>{name}</strong><span>{desc}</span></button>)}</div>
+    <button onClick={onBack}>BACK</button>
+  </div></div>
 }
 
 function Settings({sensitivity,setSensitivity,onBack}){
@@ -279,7 +290,7 @@ function App(){
   const [screen,setScreen]=useState('menu')
   const [practice,setPractice]=useState(false)
   const [key,setKey]=useState(0)
-  const [cameraSensitivity,setCameraSensitivity]=useState(1)
+  const [cameraSensitivity,setCameraSensitivity]=useState(1)\n  const [difficulty,setDifficulty]=useState('normal')
   const player=useRef(new THREE.Vector3(...START))
 
   const start=(p)=>{
@@ -296,15 +307,15 @@ function App(){
   const backToMenu=()=>setScreen('menu')
 
   return <div className="app">
-    {screen==='menu'&&<Menu onPlay={()=>start(false)} onPractice={()=>start(true)} onSettings={()=>setScreen('settings')}/>}
-    {screen==='settings'&&<Settings sensitivity={cameraSensitivity} setSensitivity={setCameraSensitivity} onBack={backToMenu}/>}
+    {screen==='menu'&&<Menu onPlay={()=>start(false)} onPractice={()=>start(true)} onSettings={()=>setScreen('settings')} onDifficulty={()=>setScreen('difficulty')} difficulty={difficulty}/>}
+    {screen==='settings'&&<Settings sensitivity={cameraSensitivity} setSensitivity={setCameraSensitivity} onBack={backToMenu}/>}\n    {screen==='difficulty'&&<Difficulty difficulty={difficulty} setDifficulty={setDifficulty} onBack={backToMenu}/>}
     {screen==='pregame'&&<PreGame practice={practice} onStart={play}/>}
     {(screen==='play'||screen==='lose'||screen==='win')&&
       <World
         key={key}
         mode={screen==='play'?(practice?'practice':'play'):screen}
         player={player}
-        cameraSensitivity={cameraSensitivity}
+        cameraSensitivity={cameraSensitivity} difficulty={difficulty}
         onLose={()=>setScreen('lose')}
         onWin={()=>setScreen('win')}
       />
