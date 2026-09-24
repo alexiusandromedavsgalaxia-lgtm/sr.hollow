@@ -290,7 +290,8 @@ function App(){
   const [screen,setScreen]=useState('menu')
   const [practice,setPractice]=useState(false)
   const [key,setKey]=useState(0)
-  const [cameraSensitivity,setCameraSensitivity]=useState(1)\n  const [difficulty,setDifficulty]=useState('normal')
+  const [cameraSensitivity,setCameraSensitivity]=useState(1)
+  const [difficulty,setDifficulty]=useState('normal')
   const player=useRef(new THREE.Vector3(...START))
 
   const start=(p)=>{
@@ -308,7 +309,8 @@ function App(){
 
   return <div className="app">
     {screen==='menu'&&<Menu onPlay={()=>start(false)} onPractice={()=>start(true)} onSettings={()=>setScreen('settings')} onDifficulty={()=>setScreen('difficulty')} difficulty={difficulty}/>}
-    {screen==='settings'&&<Settings sensitivity={cameraSensitivity} setSensitivity={setCameraSensitivity} onBack={backToMenu}/>}\n    {screen==='difficulty'&&<Difficulty difficulty={difficulty} setDifficulty={setDifficulty} onBack={backToMenu}/>}
+    {screen==='settings'&&<Settings sensitivity={cameraSensitivity} setSensitivity={setCameraSensitivity} onBack={backToMenu}/>} 
+    {screen==='difficulty'&&<Difficulty difficulty={difficulty} setDifficulty={setDifficulty} onBack={backToMenu}/>} 
     {screen==='pregame'&&<PreGame practice={practice} onStart={play}/>}
     {(screen==='play'||screen==='lose'||screen==='win')&&
       <World
