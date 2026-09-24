@@ -46,127 +46,254 @@ function Furniture(){
   </group>
 }
 
-function House(){
-  const outer=[
-    <Box key="north" p={[0,1.5,-7.5]} s={[15,.3,15*0+ .3]} c="#5a5147"/>,
-    <Box key="west" p={[-7.5,1.5,0]} s={[.3,3.0,15]} c="#5a5147"/>,
-    <Box key="east" p={[7.5,1.5,0]} s={[.3,3.0,15]} c="#5a5147"/>,
-    <Box key="southL" p={[-5.2,1.5,7.5]} s={[4.6,3,.3]} c="#5a5147"/>,
-    <Box key="southR" p={[5.2,1.5,7.5]} s={[4.6,3,.3]} c="#5a5147"/>
-  ]
-  return <group>
-    {outer}
-    <Box p={[0,-.12,0]} s={[15,.22,15]} c="#29241f"/>
-    <Box p={[0,3.05,0]} s={[15,.25,15]} c="#302a24"/>
-    <Box p={[-3.65,1.5,-1.25]} s={[.28,3,8.1]} c="#67594c"/>
-    <Box p={[3.65,1.5,-1.25]} s={[.28,3,8.1]} c="#67594c"/>
-    <Box p={[0,1.5,2.85]} s={[7.3,3,.28]} c="#67594c"/>
-    <Box p={[-5.15,1.5,4.75]} s={[4.5,3,.28]} c="#67594c"/>
-    <Box p={[5.15,1.5,4.75]} s={[4.5,3,.28]} c="#67594c"/>
-    <Door p={[0,1.3,7.34]} exit/>
-    <Door p={[-6.8,1.3,-1.8]} rot={Math.PI/2}/>
-    <Door p={[6.8,1.3,2.2]} rot={Math.PI/2}/>
-    <Furniture/>
-    <group position={[5.2,0,2.65]}>
-      {Array.from({length:8},(_,i)=><Box key={i} p={[-i*.48,.28+i*.34,0]} s={[2.7,.52,1.75]} c="#59483a"/>)}
-    </group>
-    <group position={[-5.9,0,-1.8]}>
-      {Array.from({length:5},(_,i)=><Box key={i} p={[0,.28+i*.32,0]} s={[1.4,.5,1.4]} c="#40352c"/>)}
-    </group>
-    <Lamp p={[-1.3,2.55,-5.9]}/><Lamp p={[5.5,2.55,-1.2]}/><Lamp p={[-5.6,2.55,3.1]}/>
+const HOUSE_WALLS=[
+  [-8.6,0,0.3,16], [8.6,0,0.3,16], [0,-7.9,17,0.3],
+  [-6.2,2.7,4.5,0.26], [6.0,2.7,5.0,0.26],
+  [-6.2,0.9,4.5,0.26], [6.0,0.9,5.0,0.26],
+  [-2.25,-4.6,0.26,6.6], [3.55,-4.6,0.26,6.6],
+  [-5.1,0.0,0.26,1.8], [5.1,0.0,0.26,1.8],
+  [0,0.9,4.5,0.26]
+]
+
+function Wall({x,z,sx,sz,y=1.55,h=3,c='#655a50'}){
+  return <Box p={[x,y,z]} s={[sx,h,sz]} c={c}/>
+}
+
+function Window({p=[0,1.7,0],rot=0,w=1.6,h=1.15}){
+  return <group position={p} rotation={[0,rot,0]}>
+    <Box p={[0,0,0]} s={[w,h,.08]} c="#263442" cast={false}/>
+    <Box p={[0,0,.055]} s={[w+.12,h+.12,.08]} c="#4f514c" cast={false}/>
+    <Box p={[0,0,.1]} s={[.06,h,.04]} c="#817d73" cast={false}/>
+    <Box p={[0,0,.1]} s={[w,.06,.04]} c="#817d73" cast={false}/>
   </group>
 }
 
-function Collision({pos,old}){
+function Rug({p=[0,.02,0],s=[2,1.4],c='#3d3029'}){
+  return <mesh position={p} rotation={[-Math.PI/2,0,0]}>
+    <planeGeometry args={s}/><meshStandardMaterial color={c} roughness={1}/>
+  </mesh>
+}
+
+function Furniture(){
+  return <group>
+    <Rug p={[-5.5,.03,-3.8]} s={[4.4,2.8]} c="#403631"/>
+    <Box p={[-5.5,.65,-4.6]} s={[2.7,1.15,.95]} c="#5a5048"/>
+    <Box p={[-5.5,1.34,-4.6]} s={[2.7,.08,.95]} c="#75675b"/>
+    <Box p={[-6.85,1.05,-3.3]} s={[.55,1.8,.75]} c="#51463e"/>
+    <Box p={[-4.15,1.05,-3.3]} s={[.55,1.8,.75]} c="#51463e"/>
+    <Box p={[-5.5,1.3,-2.55]} s={[2.5,.08,.7]} c="#554a41"/>
+    <Box p={[-6.65,.65,3.7]} s={[1.4,1.3,.8]} c="#594c42"/>
+    <Box p={[-6.65,1.38,3.7]} s={[1.45,.08,.84]} c="#74675b"/>
+
+    <Box p={[-4.8,.55,.0]} s={[2.6,1.05,.9]} c="#4d4640"/>
+    <Box p={[-6.0,.72,.65]} s={[.85,1.35,.9]} c="#55504a"/>
+    <Box p={[-3.55,.72,.65]} s={[.85,1.35,.9]} c="#55504a"/>
+    <Box p={[-4.8,1.3,.58]} s={[2.8,.12,.95]} c="#292725"/>
+    <Box p={[-4.8,1.72,.52]} s={[1.55,.72,.08]} c="#181717"/>
+
+    <Rug p={[-.2,.03,-3.6]} s={[4.6,2.7]} c="#493d36"/>
+    <Box p={[-.2,.62,-3.6]} s={[3.1,1.15,1.05]} c="#59483c"/>
+    <Box p={[-.2,.68,-2.0]} s={[3.2,.1,.95]} c="#735c49"/>
+    <Box p={[-.2,.46,-1.25]} s={[2.2,.9,.8]} c="#4a3d35"/>
+    <Box p={[.8,1.0,-1.25]} s={[.08,1.1,.55]} c="#28211d"/>
+
+    <Box p={[5.95,.55,-5.5]} s={[4.2,1.0,.75]} c="#4e4035"/>
+    <Box p={[4.2,.75,-5.5]} s={[.65,1.5,.8]} c="#5c493a"/>
+    <Box p={[6.95,.75,-5.5]} s={[.65,1.5,.8]} c="#5c493a"/>
+    <Box p={[5.95,1.25,-4.8]} s={[4.25,.12,.72]} c="#66503d"/>
+    {[-.9,-.3,.3,.9].map((x,i)=><Box key={i} p={[5.95+x*2.2,.85,-3.9]} s={[.38,1.5,.45]} c="#4d3e32"/>)}
+
+    <Box p={[6.25,.55,-.8]} s={[3.5,1.05,.8]} c="#4d3c30"/>
+    <Box p={[6.25,1.25,-.8]} s={[3.6,.1,.85]} c="#6a5039"/>
+    <Box p={[5.2,1.05,-.8]} s={[.55,1.1,.55]} c="#d1b37b"/>
+    <Box p={[6.25,1.05,-.8]} s={[.55,1.1,.55]} c="#d1b37b"/>
+    <Box p={[7.3,1.05,-.8]} s={[.55,1.1,.55]} c="#d1b37b"/>
+
+    <Box p={[0,0.45,5.2]} s={[2.5,.9,1.0]} c="#5a4a3d"/>
+    <Box p={[-2.0,.45,5.2]} s={[.7,.9,.7]} c="#665347"/>
+    <Box p={[2.0,.45,5.2]} s={[.7,.9,.7]} c="#665347"/>
+    <Box p={[0,1.02,5.2]} s={[2.65,.08,1.05]} c="#7a6552"/>
+
+    <Box p={[0,.7,1.8]} s={[1.8,1.35,.55]} c="#514239"/>
+    <Box p={[0,1.55,1.8]} s={[1.8,.12,.58]} c="#675444"/>
+
+    <Box p={[5.95,.65,4.9]} s={[1.9,1.2,.8]} c="#3f332a"/>
+    <Box p={[5.95,1.35,4.9]} s={[1.95,.08,.84]} c="#72563e"/>
+
+    <group position={[2.0,0,2.9]}>
+      {Array.from({length:7},(_,i)=><Box key={i} p={[0,.2+i*.31,-i*.38]} s={[2.1,.38,.75]} c="#5b493a"/>)}
+      <Box p={[0,1.25,-2.5]} s={[2.3,.12,.85]} c="#765c45"/>
+    </group>
+  </group>
+}
+
+function House(){
+  return <group>
+    <Box p={[0,-.12,0]} s={[17,.22,15.5]} c="#272522"/>
+    <Box p={[0,3.25,0]} s={[17,.25,15.5]} c="#2f2a26"/>
+    {HOUSE_WALLS.map(([x,z,sx,sz],i)=><Wall key={i} x={x} z={z} sx={sx} sz={sz}/>)}
+    <Wall x={0} z={7.82} sx={7.0} sz={.3}/>
+    <Wall x={-7.0} z={7.82} sx={3.2} sz={.3}/>
+    <Wall x={7.0} z={7.82} sx={3.2} sz={.3}/>
+    <Box p={[0,1.35,7.72]} s={[2.1,2.7,.18]} c="#332922"/>
+    <Box p={[0,.25,7.96]} s={[2.7,.45,.8]} c="#6b5746"/>
+    <Box p={[-.9,.48,7.72]} s={[.75,.1,.1]} c="#b49462" cast={false}/>
+    <Box p={[.9,.48,7.72]} s={[.75,.1,.1]} c="#b49462" cast={false}/>
+
+    <Window p={[-7.98,1.8,-4.0]} rot={Math.PI/2}/>
+    <Window p={[-7.98,1.8,3.7]} rot={Math.PI/2}/>
+    <Window p={[7.98,1.8,-4.8]} rot={-Math.PI/2}/>
+    <Window p={[7.98,1.8,.8]} rot={-Math.PI/2}/>
+    <Window p={[-1.2,1.8,-7.72]} w={2.2}/>
+    <Window p={[3.4,1.8,-7.72]} w={1.7}/>
+
+    <Furniture/>
+    <Lamp p={[-5.4,2.65,-3.6]}/>
+    <Lamp p={[5.8,2.65,-5.5]}/>
+    <Lamp p={[0,2.65,4.9]}/>
+
+    <group position={[6.1,0,6.4]}>
+      {Array.from({length:6},(_,i)=><Box key={i} p={[0,.16+i*.22,-i*.38]} s={[2.6,.32,.75]} c="#66503d"/>)}
+    </group>
+
+    <group position={[0,.02,-9.3]}>
+      <Box p={[0,1.1,0]} s={[15,.12,.12]} c="#4b473e" cast={false}/>
+      {[-7,-5.5,-4,-2.5,-1,1,2.5,4,5.5,7].map(x=><Box key={x} p={[x,.65,0]} s={[.1,1.3,.1]} c="#4b473e" cast={false}/>)}
+      <Box p={[-4,.8,-2.2]} s={[2.8,.15,2.2]} c="#5a4638"/>
+      <Box p={[-4,1.7,-2.2]} s={[2.8,.12,2.2]} c="#5a4638"/>
+      <Box p={[4,.5,-2.4]} s={[2.4,1,.35]} c="#4c3c31"/>
+      <Box p={[4,.5,-1.1]} s={[2.4,1,.35]} c="#4c3c31"/>
+    </group>
+  </group>
+}
+
+function Collision(pos){
   const x=pos.x,z=pos.z
-  const walls=[
-    [-7.0,7.0,.25,14], [7.0,7.0,.25,14], [7.0,-7.0,.25,14],[-7.0,-7.0,.25,14],
-    [-3.65,-1.25,.3,8.1],[3.65,-1.25,.3,8.1],[0,2.85,7.3,.3],
-    [-5.15,4.75,4.5,.3],[5.15,4.75,4.5,.3]
-  ]
-  for(const [wx,wz,ww,wd] of walls){
-    const nearX=Math.abs(x-wx)<ww/2+.28
-    const nearZ=Math.abs(z-wz)<wd/2+.28
-    if(nearX&&nearZ)return true
+  if(x<-7.95||x>7.95||z<-7.25||z>7.25)return true
+  for(const [wx,wz,ww,wd] of HOUSE_WALLS){
+    if(Math.abs(x-wx)<ww/2+.3&&Math.abs(z-wz)<wd/2+.3)return true
   }
   return false
 }
 
 function Player({running,onMove}){
-  const keys=useRef({}),{camera}=useThree()
+  const keys=useRef({})
+  const {camera}=useThree()
+  const velocity=useRef(new THREE.Vector3())
   useEffect(()=>{
-    const d=e=>{keys.current[e.code]=true;if(e.code==='ShiftLeft'||e.code==='ShiftRight')e.preventDefault()}
-    const u=e=>keys.current[e.code]=false
-    addEventListener('keydown',d);addEventListener('keyup',u)
-    return()=>{removeEventListener('keydown',d);removeEventListener('keyup',u)}
+    const down=e=>{keys.current[e.code]=true}
+    const up=e=>{keys.current[e.code]=false}
+    window.addEventListener('keydown',down)
+    window.addEventListener('keyup',up)
+    return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up)}
   },[])
   useFrame((_,dt)=>{
     if(!running)return
     const k=keys.current
-    let x=(k.KeyD?1:0)-(k.KeyA?1:0),z=(k.KeyS?1:0)-(k.KeyW?1:0)
-    if(!x&&!z)return
-    const len=Math.hypot(x,z)
-    const speed=(k.ShiftLeft||k.ShiftRight?3.9:2.55)*dt
-    const forward=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);forward.y=0;forward.normalize()
-    const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);right.y=0;right.normalize()
-    const next=camera.position.clone().addScaledVector(right,x/len*speed).addScaledVector(forward,-z/len*speed)
+    let side=(k.KeyD?1:0)-(k.KeyA?1:0)+(k.ArrowRight?1:0)-(k.ArrowLeft?1:0)
+    let forward=(k.KeyW?1:0)-(k.KeyS?1:0)+(k.ArrowUp?1:0)-(k.ArrowDown?1:0)
+    if(!side&&!forward)return
+    const len=Math.hypot(side,forward)
+    const speed=(k.ShiftLeft||k.ShiftRight?4.4:2.9)*dt
+    const f=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);f.y=0;f.normalize()
+    const r=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);r.y=0;r.normalize()
+    const next=camera.position.clone()
+    next.addScaledVector(r,side/len*speed)
+    next.addScaledVector(f,forward/len*speed)
     next.y=1.62
-    next.x=clamp(next.x,-6.65,6.65);next.z=clamp(next.z,-6.65,6.65)
-    if(!Collision({x:next.x,z:next.z},camera.position))camera.position.copy(next)
-    onMove(camera.position)
+    if(!Collision(next)){
+      camera.position.copy(next)
+      onMove(camera.position)
+    }
   })
   return null
 }
 
-function CameraController({running,touchLook,sensitivity=1}){
-  const {camera,gl}=useThree()
-  const yaw=useRef(0),pitch=useRef(0),drag=useRef(null)
+function TouchControls({move,look}){
+  const joy=useRef(null),last=useRef(null)
+  const moveTouch=e=>{
+    e.preventDefault()
+    const t=e.touches[0],r=joy.current?.getBoundingClientRect()
+    if(!t||!r)return
+    move(
+      clamp((t.clientX-(r.left+r.width/2))/(r.width*.38),-1,1),
+      clamp((t.clientY-(r.top+r.height/2))/(r.height*.38),-1,1)
+    )
+  }
+  const start=e=>{const t=e.touches[0];if(t)last.current={x:t.clientX,y:t.clientY}}
+  const drag=e=>{
+    e.preventDefault()
+    const t=e.touches[0]
+    if(!t||!last.current)return
+    look(t.clientX-last.current.x,t.clientY-last.current.y)
+    last.current={x:t.clientX,y:t.clientY}
+  }
+  return <div className="touchControls">
+    <div ref={joy} className="joystick" onTouchStart={moveTouch} onTouchMove={moveTouch} onTouchEnd={()=>move(0,0)}><div className="stick"/></div>
+    <div className="lookZone" onTouchStart={start} onTouchMove={drag} onTouchEnd={()=>last.current=null}/>
+  </div>
+}
 
+function World({mode,player,onLose,onWin,cameraSensitivity=1,difficulty='normal'}){
+  const running=mode==='play'||mode==='practice'
+  const cameraRef=useRef()
+  const touchLook=useRef(null)
+  const grannyPosition=useRef(new THREE.Vector3(-5.4,0,3.6))
+  const [visionBlur,setVisionBlur]=useState(0)
+  const [tick,setTick]=useState(0)
   useEffect(()=>{
-    camera.rotation.order='YXZ'
-    camera.rotation.set(0,0,0)
-
-    const down=e=>{
-      if(!running)return
-      if(e.pointerType==='mouse'&&e.button!==0)return
-      drag.current={x:e.clientX,y:e.clientY}
-      try{gl.domElement.setPointerCapture(e.pointerId)}catch{}
+    const id=setInterval(()=>setTick(v=>v+1),80)
+    return()=>clearInterval(id)
+  },[])
+  useEffect(()=>{
+    if(!running)return
+    const d=Math.hypot(player.current.x+5.4,player.current.z-3.6)
+    if(d<1.0)onLose()
+    if(player.current.z>7.15&&Math.abs(player.current.x)<1.35)onWin()
+    if(difficulty==='extreme'&&mode==='play'){
+      const intensity=clamp((8.5-d)/7.0,0,1)
+      setVisionBlur(intensity)
+    }else setVisionBlur(0)
+  },[tick,running,onLose,onWin,player,difficulty,mode])
+  const touchMove=(x,y)=>{
+    const c=cameraRef.current
+    if(!c)return
+    const f=new THREE.Vector3(0,0,-1).applyQuaternion(c.quaternion);f.y=0;f.normalize()
+    const r=new THREE.Vector3(1,0,0).applyQuaternion(c.quaternion);r.y=0;r.normalize()
+    const next=c.position.clone().addScaledVector(r,x*.12).addScaledVector(f,-y*.12)
+    next.y=1.62
+    if(!Collision(next)){
+      c.position.copy(next)
+      player.current.copy(c.position)
     }
-    const move=e=>{
-      if(!drag.current)return
-      const dx=e.clientX-drag.current.x
-      const dy=e.clientY-drag.current.y
-      drag.current={x:e.clientX,y:e.clientY}
-      yaw.current-=dx*.0022*sensitivity
-      pitch.current=clamp(pitch.current-dy*.0018*sensitivity,-1.35,1.35)
-    }
-    const up=()=>{drag.current=null}
-    gl.domElement.addEventListener('pointerdown',down)
-    gl.domElement.addEventListener('pointermove',move)
-    gl.domElement.addEventListener('pointerup',up)
-    gl.domElement.addEventListener('pointercancel',up)
-    return()=>{
-      gl.domElement.removeEventListener('pointerdown',down)
-      gl.domElement.removeEventListener('pointermove',move)
-      gl.domElement.removeEventListener('pointerup',up)
-      gl.domElement.removeEventListener('pointercancel',up)
-    }
-  },[running,gl,camera])
-
-  useFrame(()=>{
-    if(touchLook.current){
-      yaw.current-=touchLook.current.dx*.0022*sensitivity
-      pitch.current=clamp(pitch.current-touchLook.current.dy*.0018*sensitivity,-1.35,1.35)
-      touchLook.current=null
-    }
-    camera.rotation.set(pitch.current,yaw.current,0)
-  })
-  return null
+  }
+  return <div className="world">
+    <Canvas shadows dpr={[1,1.7]} gl={{antialias:true}} camera={{fov:68,near:.05,far:90}}>
+      <PerspectiveCamera ref={cameraRef} makeDefault position={START} fov={68} near={.05} far={90}/>
+      <color attach="background" args={['#0a0908']}/>
+      <fog attach="fog" args={['#0a0908',18,42]}/>
+      <ambientLight intensity={.38}/>
+      <directionalLight castShadow position={[-6,10,5]} intensity={1.25} shadow-mapSize={[2048,2048]}/>
+      <pointLight position={[0,2.3,4.5]} intensity={5} distance={9} color="#d1a36c"/>
+      <House/>
+      <Granny player={player} active={mode==='play'} difficulty={difficulty} positionRef={grannyPosition}/>
+      <Player running={running} onMove={p=>player.current.copy(p)}/>
+      <CameraController running={running} touchLook={touchLook} sensitivity={cameraSensitivity}/>
+      <Environment preset="warehouse"/>
+    </Canvas>
+    {running&&<div className="crosshair">+</div>}
+    {running&&difficulty==='extreme'&&<div className="extremeVision" style={{opacity:.18+.52*visionBlur,backdropFilter:\`blur(\${1+visionBlur*6}px)\`}}/>}
+    {running&&<div className="gameHud"><span>GRANNY</span><span>{mode==='practice'?'PRACTICE':'NIGHT 1 · '+difficulty.toUpperCase()}</span><small>WASD / arrows · SHIFT · drag to look</small></div>}
+    {running&&<TouchControls move={touchMove} look={(dx,dy)=>{touchLook.current={dx,dy}}}/>}
+  </div>
 }
-function Granny({player,active,difficulty='normal'}){
+
+function Granny({player,active,difficulty='normal',positionRef}){
   const ref=useRef()
   useFrame((_,dt)=>{
-    if(!active||!ref.current)return
+    if(!ref.current)return
+    positionRef?.current.copy(ref.current.position)
+    if(!active)return
     const p=ref.current.position,dx=player.current.x-p.x,dz=player.current.z-p.z,d=Math.hypot(dx,dz)
     if(d<10&&d>.9){
       const step=({easy:0.72,normal:1.02,hard:1.32,extreme:1.65}[difficulty]||1.02)*dt
@@ -183,51 +310,6 @@ function Granny({player,active,difficulty='normal'}){
     <Box p={[.19,2.55,-.39]} s={[.07,.08,.035]} c="#111"/>
     <Box p={[0,2.84,0]} s={[.86,.16,.5]} c="#2e2620"/>
   </group>
-}
-
-function TouchControls({move,look}){
-  const joy=useRef(null),last=useRef(null)
-  const moveTouch=e=>{
-    e.preventDefault();const t=e.touches[0],r=joy.current?.getBoundingClientRect();if(!t||!r)return
-    move(clamp((t.clientX-(r.left+r.width/2))/(r.width*.38),-1,1),clamp((t.clientY-(r.top+r.height/2))/(r.height*.38),-1,1))
-  }
-  const start=e=>{const t=e.touches[0];if(t)last.current={x:t.clientX,y:t.clientY}}
-  const drag=e=>{e.preventDefault();const t=e.touches[0];if(!t||!last.current)return;look(t.clientX-last.current.x,t.clientY-last.current.y);last.current={x:t.clientX,y:t.clientY}}
-  return <div className="touchControls">
-    <div ref={joy} className="joystick" onTouchStart={moveTouch} onTouchMove={moveTouch} onTouchEnd={()=>move(0,0)}><div className="stick"/></div>
-    <div className="lookZone" onTouchStart={start} onTouchMove={drag} onTouchEnd={()=>last.current=null}/>
-  </div>
-}
-
-function World({mode,player,onLose,onWin,cameraSensitivity=1,difficulty='normal'}){
-  const running=mode==='play'||mode==='practice'
-  const cameraRef=useRef()
-  const touchLook=useRef(null)
-  const [tick,setTick]=useState(0)
-  useEffect(()=>{const id=setInterval(()=>setTick(v=>v+1),100);return()=>clearInterval(id)},[])
-  useEffect(()=>{
-    if(!running)return
-    const d=Math.hypot(player.current.x+5.4,player.current.z-3.6)
-    if(d<1.0)onLose()
-    if(player.current.z>6.8&&Math.abs(player.current.x)<2.0)onWin()
-  },[tick,running,onLose,onWin,player])
-  return <div className="world">
-    <Canvas shadows dpr={[1,1.7]} gl={{antialias:true}}>
-      <PerspectiveCamera ref={cameraRef} makeDefault position={START} fov={68} near={.05} far={80}/>
-      <color attach="background" args={['#090807']}/>
-      <fog attach="fog" args={['#090807',12,30]}/>
-      <ambientLight intensity={.28}/>
-      <directionalLight castShadow position={[-5,9,4]} intensity={1.1} shadow-mapSize={[2048,2048]}/>
-      <pointLight position={[0,2,-1]} intensity={4.5} distance={8} color="#c79e6c"/>
-      <House/>
-      <Granny player={player} active={mode==='play'} difficulty={difficulty}/>
-      <Player running={running} onMove={p=>player.current.copy(p)}/>
-      <CameraController running={running} touchLook={touchLook} sensitivity={cameraSensitivity}/>
-      <Environment preset="warehouse"/>
-    </Canvas>
-    {running&&<div className="gameHud"><span>GRANNY</span><span>{mode==='practice'?'PRACTICE':'NIGHT 1'}</span><small>WASD / tocar · arrastra para mirar</small></div>}
-    {running&&<TouchControls move={(x,y)=>{const c=cameraRef.current;if(!c)return;const forward=new THREE.Vector3(0,0,-1).applyQuaternion(c.quaternion);forward.y=0;forward.normalize();const right=new THREE.Vector3(1,0,0).applyQuaternion(c.quaternion);right.y=0;right.normalize();const next=c.position.clone().addScaledVector(right,x*.045).addScaledVector(forward,-y*.045);next.x=clamp(next.x,-6.65,6.65);next.z=clamp(next.z,-6.65,6.65);if(!Collision(next,c.position))c.position.copy(next);player.current.copy(c.position)}} look={(dx,dy)=>{touchLook.current={dx,dy}}}/>}
-  </div>
 }
 
 function Menu({onPlay,onPractice,onSettings,onDifficulty,difficulty}){
