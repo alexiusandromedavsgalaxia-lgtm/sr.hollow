@@ -119,6 +119,65 @@ function Granny({player,active}){
   </group>
 }
 
+function TouchControls({onMove,onLook}){
+  const joystickRef=useRef(null)
+  const lookState=useRef({id:null,x:0,y:0})
+
+  const updateJoystick=e=>{
+    e.preventDefault()
+    const t=e.touches[0]
+    const r=joystickRef.current?.getBoundingClientRect()
+    if(!t||!r)return
+    const cx=r.left+r.width/2
+    const cy=r.top+r.height/2
+    const x=clamp((t.clientX-cx)/(r.width*.38),-1,1)
+    const y=clamp((t.clientY-cy)/(r.height*.38),-1,1)
+    onMove(x,y)
+  }
+
+  const startLook=e=>{
+    const t=e.touches[0]
+    if(!t)return
+    lookState.current={id:t.identifier,x:t.clientX,y:t.clientY}
+  }
+
+  const moveLook=e=>{
+    e.preventDefault()
+    const state=lookState.current
+    if(state.id===null)return
+    const t=[...e.touches].find(v=>v.identifier===state.id)
+    if(!t)return
+    const dx=t.clientX-state.x
+    const dy=t.clientY-state.y
+    lookState.current={id:state.id,x:t.clientX,y:t.clientY}
+    onLook(dx,dy)
+  }
+
+  const endLook=()=>{
+    lookState.current={id:null,x:0,y:0}
+  }
+
+  return <div className="touchControls">
+    <div
+      ref={joystickRef}
+      className="joystick"
+      onTouchStart={updateJoystick}
+      onTouchMove={updateJoystick}
+      onTouchEnd={e=>{e.preventDefault();onMove(0,0)}}
+      onTouchCancel={e=>{e.preventDefault();onMove(0,0)}}
+    >
+      <div className="stick"/>
+    </div>
+    <div
+      className="lookZone"
+      onTouchStart={startLook}
+      onTouchMove={moveLook}
+      onTouchEnd={endLook}
+      onTouchCancel={endLook}
+    />
+  </div>
+}
+
 function Game(){
   const [started,setStarted]=useState(false),[lost,setLost]=useState(false),[won,setWon]=useState(false)
   const player=useRef(new THREE.Vector3(0,1.65,5.5))
