@@ -282,7 +282,7 @@ function World({mode,player,onLose,onWin,cameraSensitivity=1,difficulty='normal'
       <Environment preset="warehouse"/>
     </Canvas>
     {running&&<div className="crosshair">+</div>}
-    {running&&difficulty==='extreme'&&<div className="extremeVision" style={{opacity:.18+.52*visionBlur,backdropFilter:\`blur(\${1+visionBlur*6}px)\`}}/>}
+    {running&&difficulty==='extreme'&&<div className="extremeVision" style={{opacity:.18+.52*visionBlur,backdropFilter:`blur(${1+visionBlur*6}px)`}}/>}
     {running&&<div className="gameHud"><span>GRANNY</span><span>{mode==='practice'?'PRACTICE':'NIGHT 1 · '+difficulty.toUpperCase()}</span><small>WASD / arrows · SHIFT · drag to look</small></div>}
     {running&&<TouchControls move={touchMove} look={(dx,dy)=>{touchLook.current={dx,dy}}}/>}
   </div>
