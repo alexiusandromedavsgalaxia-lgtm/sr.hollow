@@ -121,34 +121,48 @@ function Player({running,onMove}){
 function CameraController({running,touchLook}){
   const {camera,gl}=useThree()
   const yaw=useRef(0),pitch=useRef(0),drag=useRef(null)
+
   useEffect(()=>{
     camera.rotation.order='YXZ'
+    camera.rotation.set(0,0,0)
+
     const down=e=>{
       if(!running)return
       if(e.pointerType==='mouse'&&e.button!==0)return
       drag.current={x:e.clientX,y:e.clientY}
-      gl.domElement.setPointerCapture?.(e.pointerId)
+      try{gl.domElement.setPointerCapture(e.pointerId)}catch{}
     }
     const move=e=>{
       if(!drag.current)return
-      const dx=e.clientX-drag.current.x,dy=e.clientY-drag.current.y
+      const dx=e.clientX-drag.current.x
+      const dy=e.clientY-drag.current.y
       drag.current={x:e.clientX,y:e.clientY}
-      yaw.current-=dx*.0027
-      pitch.current=clamp(pitch.current-dy*.0021,-1.42,1.42)
-      camera.rotation.set(pitch.current,yaw.current,0)
+      yaw.current-=dx*.0022
+      pitch.current=clamp(pitch.current-dy*.0018,-1.35,1.35)
     }
     const up=()=>{drag.current=null}
     gl.domElement.addEventListener('pointerdown',down)
     gl.domElement.addEventListener('pointermove',move)
     gl.domElement.addEventListener('pointerup',up)
     gl.domElement.addEventListener('pointercancel',up)
-    return()=>{gl.domElement.removeEventListener('pointerdown',down);gl.domElement.removeEventListener('pointermove',move);gl.domElement.removeEventListener('pointerup',up);gl.domElement.removeEventListener('pointercancel',up)}
+    return()=>{
+      gl.domElement.removeEventListener('pointerdown',down)
+      gl.domElement.removeEventListener('pointermove',move)
+      gl.domElement.removeEventListener('pointerup',up)
+      gl.domElement.removeEventListener('pointercancel',up)
+    }
   },[running,gl,camera])
-  useEffect(()=>{if(touchLook.current){yaw.current-=touchLook.current.dx*.0027;pitch.current=clamp(pitch.current-touchLook.current.dy*.0021,-1.42,1.42);camera.rotation.set(pitch.current,yaw.current,0);touchLook.current=null}},[touchLook,camera])
-  useFrame(()=>{camera.rotation.set(pitch.current,yaw.current,0)})
+
+  useFrame(()=>{
+    if(touchLook.current){
+      yaw.current-=touchLook.current.dx*.0022
+      pitch.current=clamp(pitch.current-touchLook.current.dy*.0018,-1.35,1.35)
+      touchLook.current=null
+    }
+    camera.rotation.set(pitch.current,yaw.current,0)
+  })
   return null
 }
-
 function Granny({player,active}){
   const ref=useRef()
   useFrame((_,dt)=>{
