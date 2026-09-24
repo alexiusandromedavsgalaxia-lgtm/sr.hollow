@@ -118,7 +118,7 @@ function Player({running,onMove}){
   return null
 }
 
-function CameraController({running,touchLook}){
+function CameraController({running,touchLook,sensitivity=1}){
   const {camera,gl}=useThree()
   const yaw=useRef(0),pitch=useRef(0),drag=useRef(null)
 
@@ -137,8 +137,8 @@ function CameraController({running,touchLook}){
       const dx=e.clientX-drag.current.x
       const dy=e.clientY-drag.current.y
       drag.current={x:e.clientX,y:e.clientY}
-      yaw.current-=dx*.0022
-      pitch.current=clamp(pitch.current-dy*.0018,-1.35,1.35)
+      yaw.current-=dx*.0022*sensitivity
+      pitch.current=clamp(pitch.current-dy*.0018*sensitivity,-1.35,1.35)
     }
     const up=()=>{drag.current=null}
     gl.domElement.addEventListener('pointerdown',down)
@@ -155,8 +155,8 @@ function CameraController({running,touchLook}){
 
   useFrame(()=>{
     if(touchLook.current){
-      yaw.current-=touchLook.current.dx*.0022
-      pitch.current=clamp(pitch.current-touchLook.current.dy*.0018,-1.35,1.35)
+      yaw.current-=touchLook.current.dx*.0022*sensitivity
+      pitch.current=clamp(pitch.current-touchLook.current.dy*.0018*sensitivity,-1.35,1.35)
       touchLook.current=null
     }
     camera.rotation.set(pitch.current,yaw.current,0)
@@ -199,7 +199,7 @@ function TouchControls({move,look}){
   </div>
 }
 
-function World({mode,player,onLose,onWin}){
+function World({mode,player,onLose,onWin,cameraSensitivity=1}){
   const running=mode==='play'
   const cameraRef=useRef()
   const touchLook=useRef(null)
@@ -222,7 +222,7 @@ function World({mode,player,onLose,onWin}){
       <House/>
       <Granny player={player} active={running}/>
       <Player running={running} onMove={p=>player.current.copy(p)}/>
-      <CameraController running={running} touchLook={touchLook}/>
+      <CameraController running={running} touchLook={touchLook} sensitivity={cameraSensitivity}/>
       <Environment preset="warehouse"/>
     </Canvas>
     {running&&<div className="gameHud"><span>GRANNY</span><span>NIGHT 1</span><small>WASD / tocar · arrastra para mirar</small></div>}
@@ -230,7 +230,7 @@ function World({mode,player,onLose,onWin}){
   </div>
 }
 
-function Menu({onPlay,onPractice}){
+function Menu({onPlay,onPractice,onSettings}){
   return <div className="menu">
     <div className="menuScene"><div className="vignette"/></div>
     <div className="menuCard">
@@ -240,14 +240,14 @@ function Menu({onPlay,onPractice}){
       <div className="menuButtons">
         <button onClick={onPlay}>PLAY</button>
         <button onClick={onPractice}>PRACTICE</button>
-        <button className="ghost">SETTINGS</button>
+        <button className="ghost" onClick={onSettings}>SETTINGS</button>
       </div>
       <p>Five nights. One house. Find the way out.</p>
     </div>
   </div>
 }
 
-function PreGame({onStart,practice}){
+function Settings({sensitivity,setSensitivity,onBack}){\n  return <div className="pregame">\n    <div className="preBox">\n      <div className="preKicker">SETTINGS</div>\n      <h2>GAME SETTINGS</h2>\n      <p>Adjust the camera before entering the house. The setting is saved for this session.</p>\n      <div className="controls"><span>CAMERA {Math.round(sensitivity*100)}%</span></div>\n      <input aria-label="Camera sensitivity" type="range" min="0.5" max="1.8" step="0.1" value={sensitivity} onChange={e=>setSensitivity(Number(e.target.value))} style={{width:'100%',accentColor:'#ded3c1'}}/>\n      <div style={{display:'flex',gap:8,marginTop:18}}><button onClick={onBack}>BACK</button><button className="ghost" onClick={()=>setSensitivity(1)}>RESET</button></div>\n    </div>\n  </div>\n}\n\nfunction PreGame({onStart,practice}){
   return <div className="pregame">
     <div className="preBox">
       <div className="preKicker">{practice?'PRACTICE':'NIGHT 1'}</div>
