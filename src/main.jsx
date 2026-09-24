@@ -129,12 +129,40 @@ function TouchControls({move,look}){
 
 function Granny({player,active,difficulty,positionRef,noiseRef}){
   const ref=useRef()
-  useFrame((_,dt)=>{if(!ref.current)return;positionRef.current.copy(ref.current.position);if(!active)return;const p=ref.current.position,dx=player.current.x-p.x,dz=player.current.z-p.z,d=Math.hypot(dx,dz);let tx=player.current.x,tz=player.current.z
+  useFrame((_,dt)=>{
+    if(!ref.current)return
+    positionRef.current.copy(ref.current.position)
+    if(!active)return
+    const p=ref.current.position,dx=player.current.x-p.x,dz=player.current.z-p.z,d=Math.hypot(dx,dz)
+    let tx=player.current.x,tz=player.current.z
     if(noiseRef.current){tx=noiseRef.current.x;tz=noiseRef.current.z;if(noiseRef.current.t<performance.now())noiseRef.current=null}
     const nd=Math.hypot(tx-p.x,tz-p.z)
-    if((d<11||noiseRef.current)&&nd>.8){const step=({easy:.62,normal:.86,hard:1.1,extreme:1.38}[difficulty]||.86)*dt;const nx=p.x+(tx-p.x)/nd*step,nz=p.z+(tz-p.z)/nd*step;if(!Collision({x:nx,z:nz})){p.x=nx;p.z=nz};ref.current.rotation.y=Math.atan2(tx-p.x,tz-p.z)}
+    if((d<11||noiseRef.current)&&nd>.8){
+      const step=({easy:.62,normal:.86,hard:1.1,extreme:1.38}[difficulty]||.86)*dt
+      const nx=p.x+(tx-p.x)/nd*step,nz=p.z+(tz-p.z)/nd*step
+      if(!Collision({x:nx,z:nz})){p.x=nx;p.z=nz}
+      ref.current.rotation.y=Math.atan2(tx-p.x,tz-p.z)
+    }
   })
-  return <group ref={ref} position={[-5.5,0,3.5]}><Box p={[0,1.15,0]} s={[.72,1.95,.5]} c="#d8cdc3"/><mesh position={[0,2.38,0]}><sphereGeometry args={[.43,20,16]}/><meshStandardMaterial color="#d8cdc3"/></mesh><Box p={[0,1.48,-.28]} s={[.86,.82,.1]} c="#8c1f27"/><Box p={[-.19,2.47,-.4]} s={[.07,.08,.035]} c="#111"/><Box p={[.19,2.47,-.4]} s={[.07,.08,.035]} c="#111"/><Box p={[0,2.78,0]} s={[.9,.16,.5]} c="#2e2620"/></group>
+  return <group ref={ref} position={[-5.5,0,3.5]}>
+    {/* original placeholder humanoid, redesigned as a proper stylized character */}
+    <group position={[0,1.0,0]}>
+      <Box p={[0,.55,0]} s={[.72,1.15,.42]} c="#6b2528"/>
+      <Box p={[0,1.08,0]} s={[1.02,.22,.56]} c="#4b2023"/>
+      <Box p={[-.47,.55,0]} s={[.18,.95,.22]} c="#d2c4b8"/>
+      <Box p={[.47,.55,0]} s={[.18,.95,.22]} c="#d2c4b8"/>
+      <Box p={[-.23,-.18,0]} s={[.2,.72,.22]} c="#4a403b"/>
+      <Box p={[.23,-.18,0]} s={[.2,.72,.22]} c="#4a403b"/>
+      <mesh position={[0,1.9,0]}>
+        <sphereGeometry args={[.43,24,18]}/>
+        <meshStandardMaterial color="#d2c4b8" roughness={.9}/>
+      </mesh>
+      <Box p={[0,2.27,0]} s={[.9,.18,.56]} c="#40352f"/>
+      <Box p={[-.15,1.98,-.38]} s={[.075,.075,.04]} c="#161313"/>
+      <Box p={[.15,1.98,-.38]} s={[.075,.075,.04]} c="#161313"/>
+      <Box p={[0,1.82,-.39]} s={[.18,.045,.025]} c="#32191b"/>
+    </group>
+  </group>
 }
 
 function ItemMesh({type,position}){
